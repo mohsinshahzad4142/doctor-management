@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Doctor Management System</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F0F4F8;--white:#FFFFFF;--blue:#1A56DB;--blue2:#3B82F6;--blue-light:#EFF6FF;
+  --green:#059669;--green-light:#ECFDF5;--red:#DC2626;--red-light:#FEF2F2;
+  --yellow:#D97706;--yellow-light:#FFFBEB;--text:#1E293B;--text2:#64748B;
+  --border:#E2E8F0;--shadow:0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md:0 4px 12px rgba(0,0,0,0.1);--radius:12px;
+  --font:'Plus Jakarta Sans',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh}
+
+/* LAYOUT */
+.shell{display:flex;min-height:100vh}
+.sidebar{width:240px;background:var(--blue);color:white;padding:0;display:flex;flex-direction:column;position:fixed;top:0;bottom:0;left:0;z-index:10}
+.sidebar-logo{padding:24px 20px;border-bottom:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;gap:10px}
+.logo-icon{width:36px;height:36px;background:white;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.logo-text{font-size:15px;font-weight:700;line-height:1.2}
+.logo-sub{font-size:11px;opacity:.7;margin-top:1px}
+.nav{padding:16px 12px;flex:1}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;margin-bottom:4px;transition:all .2s;color:rgba(255,255,255,0.7)}
+.nav-item:hover{background:rgba(255,255,255,0.1);color:white}
+.nav-item.active{background:rgba(255,255,255,0.2);color:white}
+.nav-icon{font-size:16px;width:20px;text-align:center}
+.nav-badge{margin-left:auto;background:rgba(255,255,255,0.2);font-size:10px;padding:2px 7px;border-radius:100px}
+.sidebar-footer{padding:16px;border-top:1px solid rgba(255,255,255,0.1);font-size:12px;opacity:.6;text-align:center}
+
+.main{margin-left:240px;flex:1;display:flex;flex-direction:column}
+.topbar{background:white;padding:16px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:5}
+.page-title{font-size:18px;font-weight:700;color:var(--text)}
+.page-sub{font-size:12px;color:var(--text2);margin-top:1px}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.search-box{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:13px;color:var(--text2)}
+.search-box input{border:none;background:none;outline:none;font-size:13px;color:var(--text);font-family:var(--font);width:180px}
+.date-badge{font-size:12px;color:var(--text2);background:var(--bg);padding:6px 12px;border-radius:8px;border:1px solid var(--border)}
+
+.content{padding:24px 28px;flex:1}
+
+/* CARDS */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stat-card{background:white;border-radius:var(--radius);padding:20px;border:1px solid var(--border);box-shadow:var(--shadow)}
+.stat-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.stat-label{font-size:12px;color:var(--text2);font-weight:500}
+.stat-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px}
+.stat-num{font-size:26px;font-weight:700;color:var(--text);line-height:1}
+.stat-change{font-size:11px;margin-top:4px}
+.up{color:var(--green)}.down{color:var(--red)}
+
+/* TABS */
+.tabs{display:flex;gap:4px;background:white;border:1px solid var(--border);border-radius:10px;padding:4px;margin-bottom:20px;width:fit-content}
+.tab{padding:8px 18px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;color:var(--text2);transition:all .2s}
+.tab.active{background:var(--blue);color:white}
+
+/* TABLES */
+.panel{background:white;border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden;margin-bottom:20px}
+.panel-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.panel-title{font-size:14px;font-weight:600}
+.btn{padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;font-family:var(--font);transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.btn-blue{background:var(--blue);color:white}.btn-blue:hover{background:var(--blue2)}
+.btn-outline{background:none;border:1px solid var(--border);color:var(--text2)}.btn-outline:hover{border-color:var(--blue);color:var(--blue)}
+.btn-sm{padding:5px 12px;font-size:12px}
+.btn-red{background:var(--red-light);color:var(--red);border:none}
+.btn-green{background:var(--green-light);color:var(--green);border:none}
+
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:10px 16px;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;background:var(--bg);border-bottom:1px solid var(--border)}
+td{padding:12px 16px;font-size:13px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#FAFBFC}
+
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:500}
+.badge-green{background:var(--green-light);color:var(--green)}
+.badge-red{background:var(--red-light);color:var(--red)}
+.badge-yellow{background:var(--yellow-light);color:var(--yellow)}
+.badge-blue{background:var(--blue-light);color:var(--blue)}
+
+/* FORM MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:50;display:none;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.modal-overlay.open{display:flex}
+.modal{background:white;border-radius:16px;padding:28px;width:480px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-md)}
+.modal-title{font-size:16px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between}
+.modal-close{cursor:pointer;font-size:20px;color:var(--text2);background:var(--bg);width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-grid.full{grid-template-columns:1fr}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:12px;font-weight:500;color:var(--text2)}
+.field input,.field select,.field textarea{padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--text);font-family:var(--font);outline:none;transition:border .2s;background:white}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--blue)}
+.field textarea{height:80px;resize:none}
+.modal-btns{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
+
+/* STOCK ALERT */
+.alert-bar{background:var(--yellow-light);border:1px solid #FCD34D;border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--yellow)}
+.alert-bar strong{font-weight:600}
+
+/* PAGES */
+.page{display:none}.page.active{display:block}
+
+/* APPOINTMENT CALENDAR */
+.appt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;padding:16px 20px}
+.appt-card{border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;gap:12px;align-items:flex-start;transition:all .2s}
+.appt-card:hover{border-color:var(--blue2);box-shadow:var(--shadow)}
+.appt-time{background:var(--blue-light);color:var(--blue);border-radius:8px;padding:8px 10px;text-align:center;min-width:56px}
+.appt-hr{font-size:14px;font-weight:700;line-height:1}
+.appt-ampm{font-size:10px;margin-top:1px}
+.appt-info{flex:1}
+.appt-name{font-size:13px;font-weight:600;margin-bottom:3px}
+.appt-detail{font-size:12px;color:var(--text2)}
+.appt-actions{display:flex;gap:6px;margin-top:8px}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .sidebar{width:100%;height:60px;flex-direction:row;position:fixed;bottom:0;top:auto;left:0;right:0;padding:0}
+  .sidebar-logo,.sidebar-footer{display:none}
+  .nav{display:flex;flex-direction:row;padding:0;justify-content:space-around;align-items:center;width:100%}
+  .nav-item{flex-direction:column;gap:2px;font-size:10px;padding:8px 6px;margin:0}
+  .nav-badge{display:none}
+  .main{margin-left:0;margin-bottom:60px}
+  .stats-row{grid-template-columns:repeat(2,1fr)}
+  .content{padding:16px}
+  .topbar{padding:12px 16px}
+  .form-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🏥</div>
+    <div>
+      <div class="logo-text">MedManager</div>
+      <div class="logo-sub">Doctor's System</div>
+    </div>
+  </div>
+  <nav class="nav">
+    <div class="nav-item active" onclick="showPage('dashboard')"><span class="nav-icon">📊</span> Dashboard</div>
+    <div class="nav-item" onclick="showPage('medicines')"><span class="nav-icon">💊</span> Medicine Stock <span class="nav-badge" id="lowBadge">0</span></div>
+    <div class="nav-item" onclick="showPage('patients')"><span class="nav-icon">👥</span> Patients</div>
+    <div class="nav-item" onclick="showPage('appointments')"><span class="nav-icon">📅</span> Appointments</div>
+  </nav>
+  <div class="sidebar-footer">MedManager v1.0</div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="page-title" id="pageTitle">Dashboard</div>
+      <div class="page-sub" id="pageSub">Overview of your clinic</div>
+    </div>
+    <div class="topbar-right">
+      <div class="search-box">🔍 <input type="text" placeholder="Search..." oninput="globalSearch(this.value)"></div>
+      <div class="date-badge" id="todayDate"></div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-top"><span class="stat-label">Total Patients / مریض</span><div class="stat-icon" style="background:#EFF6FF">👥</div></div>
+          <div class="stat-num" id="s-patients">0</div>
+          <div class="stat-change up">↑ Active records</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top"><span class="stat-label">Today's Appts / آج کی ملاقاتیں</span><div class="stat-icon" style="background:#ECFDF5">📅</div></div>
+          <div class="stat-num" id="s-appts">0</div>
+          <div class="stat-change up">↑ Scheduled today</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top"><span class="stat-label">Medicines / ادویات</span><div class="stat-icon" style="background:#FFFBEB">💊</div></div>
+          <div class="stat-num" id="s-meds">0</div>
+          <div class="stat-change" id="s-low-txt">In stock</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top"><span class="stat-label">Low Stock Alert / کم اسٹاک</span><div class="stat-icon" style="background:#FEF2F2">⚠️</div></div>
+          <div class="stat-num down" id="s-low">0</div>
+          <div class="stat-change down">Needs restock</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">Recent Patients / حالیہ مریض</div><button class="btn btn-outline btn-sm" onclick="showPage('patients')">View All</button></div>
+          <table><thead><tr><th>Name</th><th>Age</th><th>Last Visit</th></tr></thead>
+          <tbody id="dash-patients"></tbody></table>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">Low Stock Medicines / کم ادویات</div><button class="btn btn-outline btn-sm" onclick="showPage('medicines')">View All</button></div>
+          <table><thead><tr><th>Medicine</th><th>Stock</th><th>Status</th></tr></thead>
+          <tbody id="dash-meds"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- MEDICINES -->
+    <div class="page" id="page-medicines">
+      <div id="lowStockAlert" class="alert-bar" style="display:none">⚠️ <strong>Low Stock Alert:</strong> <span id="lowStockMsg"></span> medicine(s) are running low!</div>
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">Medicine Inventory / دوائی اسٹاک</div>
+          <button class="btn btn-blue btn-sm" onclick="openModal('med')">+ Add Medicine</button>
+        </div>
+        <table>
+          <thead><tr><th>Medicine Name / دوائی</th><th>Category</th><th>Stock / مقدار</th><th>Unit Price</th><th>Expiry</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody id="med-table"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PATIENTS -->
+    <div class="page" id="page-patients">
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">Patient Records / مریضوں کا ریکارڈ</div>
+          <button class="btn btn-blue btn-sm" onclick="openModal('patient')">+ Add Patient</button>
+        </div>
+        <table>
+          <thead><tr><th>Name / نام</th><th>Age</th><th>Phone</th><th>Blood Group</th><th>Last Visit</th><th>Diagnosis</th><th>Action</th></tr></thead>
+          <tbody id="patient-table"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- APPOINTMENTS -->
+    <div class="page" id="page-appointments">
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">Appointments / ملاقاتیں</div>
+          <button class="btn btn-blue btn-sm" onclick="openModal('appt')">+ New Appointment</button>
+        </div>
+        <div class="appt-grid" id="appt-grid"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- MODALS -->
+<!-- Medicine Modal -->
+<div class="modal-overlay" id="modal-med">
+  <div class="modal">
+    <div class="modal-title">Add Medicine / دوائی شامل کریں <span class="modal-close" onclick="closeModal('med')">✕</span></div>
+    <div class="form-grid">
+      <div class="field"><label>Medicine Name / نام *</label><input id="m-name" placeholder="e.g. Paracetamol"></div>
+      <div class="field"><label>Category / قسم</label>
+        <select id="m-cat"><option>Tablet</option><option>Syrup</option><option>Injection</option><option>Capsule</option><option>Drops</option><option>Other</option></select></div>
+      <div class="field"><label>Stock Quantity / مقدار *</label><input id="m-stock" type="number" placeholder="100"></div>
+      <div class="field"><label>Unit Price (Rs.) / قیمت</label><input id="m-price" type="number" placeholder="50"></div>
+      <div class="field"><label>Expiry Date / میعاد ختم</label><input id="m-expiry" type="date"></div>
+      <div class="field"><label>Min Stock Alert / کم از کم</label><input id="m-min" type="number" placeholder="10"></div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-outline" onclick="closeModal('med')">Cancel</button>
+      <button class="btn btn-blue" onclick="saveMed()">Save Medicine ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- Patient Modal -->
+<div class="modal-overlay" id="modal-patient">
+  <div class="modal">
+    <div class="modal-title">Add Patient / مریض شامل کریں <span class="modal-close" onclick="closeModal('patient')">✕</span></div>
+    <div class="form-grid">
+      <div class="field"><label>Full Name / نام *</label><input id="p-name" placeholder="Patient name"></div>
+      <div class="field"><label>Age / عمر</label><input id="p-age" type="number" placeholder="25"></div>
+      <div class="field"><label>Phone / فون *</label><input id="p-phone" placeholder="03001234567"></div>
+      <div class="field"><label>Blood Group / خون کا گروپ</label>
+        <select id="p-blood"><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>O+</option><option>O-</option><option>AB+</option><option>AB-</option></select></div>
+      <div class="field"><label>Gender / جنس</label>
+        <select id="p-gender"><option>Male / مرد</option><option>Female / عورت</option><option>Other</option></select></div>
+      <div class="field"><label>Last Visit / آخری ملاقات</label><input id="p-visit" type="date"></div>
+    </div>
+    <div class="form-grid full" style="margin-top:12px">
+      <div class="field"><label>Diagnosis / تشخیص</label><textarea id="p-diag" placeholder="Patient diagnosis or notes..."></textarea></div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-outline" onclick="closeModal('patient')">Cancel</button>
+      <button class="btn btn-blue" onclick="savePatient()">Save Patient ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- Appointment Modal -->
+<div class="modal-overlay" id="modal-appt">
+  <div class="modal">
+    <div class="modal-title">New Appointment / ملاقات <span class="modal-close" onclick="closeModal('appt')">✕</span></div>
+    <div class="form-grid">
+      <div class="field"><label>Patient Name / نام *</label><input id="a-name" placeholder="Patient name"></div>
+      <div class="field"><label>Phone / فون</label><input id="a-phone" placeholder="03001234567"></div>
+      <div class="field"><label>Date / تاریخ *</label><input id="a-date" type="date"></div>
+      <div class="field"><label>Time / وقت *</label><input id="a-time" type="time"></div>
+      <div class="field"><label>Type / قسم</label>
+        <select id="a-type"><option>General Checkup</option><option>Follow-up</option><option>Emergency</option><option>Consultation</option></select></div>
+      <div class="field"><label>Status</label>
+        <select id="a-status"><option>Scheduled</option><option>Confirmed</option><option>Completed</option><option>Cancelled</option></select></div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-outline" onclick="closeModal('appt')">Cancel</button>
+      <button class="btn btn-blue" onclick="saveAppt()">Save Appointment ✓</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// DATA
+let medicines=JSON.parse(localStorage.getItem('meds')||'[]');
+let patients=JSON.parse(localStorage.getItem('patients')||'[]');
+let appointments=JSON.parse(localStorage.getItem('appts')||'[]');
+
+// Sample data if empty
+if(!medicines.length){
+  medicines=[
+    {id:1,name:'Paracetamol',cat:'Tablet',stock:150,price:5,expiry:'2026-12-01',min:20},
+    {id:2,name:'Amoxicillin',cat:'Capsule',stock:8,price:25,expiry:'2026-08-15',min:15},
+    {id:3,name:'ORS Sachet',cat:'Other',stock:5,price:10,expiry:'2027-01-01',min:10},
+    {id:4,name:'Cough Syrup',cat:'Syrup',stock:45,price:80,expiry:'2026-10-20',min:10},
+  ];
+  save();
+}
+if(!patients.length){
+  patients=[
+    {id:1,name:'Ahmed Ali',age:35,phone:'03001234567',blood:'B+',gender:'Male / مرد',visit:'2026-05-20',diag:'Fever, prescribed Paracetamol'},
+    {id:2,name:'Fatima Bibi',age:28,phone:'03111234567',blood:'O+',gender:'Female / عورت',visit:'2026-05-21',diag:'Cough & cold'},
+  ];
+  save();
+}
+if(!appointments.length){
+  const today=new Date().toISOString().split('T')[0];
+  appointments=[
+    {id:1,name:'Ahmed Ali',phone:'03001234567',date:today,time:'09:00',type:'General Checkup',status:'Confirmed'},
+    {id:2,name:'Fatima Bibi',phone:'03111234567',date:today,time:'10:30',type:'Follow-up',status:'Scheduled'},
+  ];
+  save();
+}
+
+function save(){
+  localStorage.setItem('meds',JSON.stringify(medicines));
+  localStorage.setItem('patients',JSON.stringify(patients));
+  localStorage.setItem('appts',JSON.stringify(appointments));
+}
+
+// NAVIGATION
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  const titles={dashboard:['Dashboard','Overview of your clinic'],medicines:['Medicine Inventory / دوائی اسٹاک','Manage medicine stock'],patients:['Patient Records / مریضوں کا ریکارڈ','All patient information'],appointments:['Appointments / ملاقاتیں','Schedule & manage appointments']};
+  document.getElementById('pageTitle').textContent=titles[id][0];
+  document.getElementById('pageSub').textContent=titles[id][1];
+  const navItems=document.querySelectorAll('.nav-item');
+  const pages=['dashboard','medicines','patients','appointments'];
+  navItems[pages.indexOf(id)].classList.add('active');
+  renderAll();
+}
+
+// RENDER
+function renderAll(){renderMeds();renderPatients();renderAppts();renderDash();updateStats();}
+
+function renderMeds(){
+  const tb=document.getElementById('med-table');
+  const low=medicines.filter(m=>m.stock<=m.min);
+  document.getElementById('lowStockAlert').style.display=low.length?'flex':'none';
+  if(low.length)document.getElementById('lowStockMsg').textContent=low.length;
+  document.getElementById('lowBadge').textContent=low.length;
+  tb.innerHTML=medicines.map(m=>{
+    const status=m.stock<=0?'<span class="badge badge-red">Out of Stock</span>':m.stock<=m.min?'<span class="badge badge-yellow">Low Stock</span>':'<span class="badge badge-green">In Stock</span>';
+    return`<tr>
+      <td><strong>${m.name}</strong></td>
+      <td><span class="badge badge-blue">${m.cat}</span></td>
+      <td><strong>${m.stock}</strong> units</td>
+      <td>Rs. ${m.price}</td>
+      <td>${m.expiry||'—'}</td>
+      <td>${status}</td>
+      <td><button class="btn btn-red btn-sm" onclick="deleteMed(${m.id})">Delete</button></td>
+    </tr>`;
+  }).join('')||'<tr><td colspan="7" style="text-align:center;color:var(--text2);padding:24px">No medicines added yet</td></tr>';
+}
+
+function renderPatients(){
+  const tb=document.getElementById('patient-table');
+  tb.innerHTML=patients.map(p=>`<tr>
+    <td><strong>${p.name}</strong></td>
+    <td>${p.age||'—'}</td>
+    <td>${p.phone}</td>
+    <td><span class="badge badge-blue">${p.blood}</span></td>
+    <td>${p.visit||'—'}</td>
+    <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.diag||'—'}</td>
+    <td><button class="btn btn-red btn-sm" onclick="deletePatient(${p.id})">Delete</button></td>
+  </tr>`).join('')||'<tr><td colspan="7" style="text-align:center;color:var(--text2);padding:24px">No patients added yet</td></tr>';
+}
+
+function renderAppts(){
+  const grid=document.getElementById('appt-grid');
+  const statusColors={Scheduled:'badge-blue',Confirmed:'badge-green',Completed:'badge-green',Cancelled:'badge-red'};
+  grid.innerHTML=appointments.map(a=>{
+    const t=a.time?new Date('2000-01-01T'+a.time).toLocaleTimeString('en',{hour:'numeric',minute:'2-digit',hour12:true}):'—';
+    const [hr,ampm]=t.split(' ');
+    return`<div class="appt-card">
+      <div class="appt-time"><div class="appt-hr">${hr}</div><div class="appt-ampm">${ampm||''}</div></div>
+      <div class="appt-info">
+        <div class="appt-name">${a.name}</div>
+        <div class="appt-detail">${a.phone} · ${a.type}</div>
+        <div class="appt-detail">${a.date}</div>
+        <div class="appt-actions">
+          <span class="badge ${statusColors[a.status]||'badge-blue'}">${a.status}</span>
+          <button class="btn btn-red btn-sm" onclick="deleteAppt(${a.id})">✕</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('')||'<div style="padding:24px;color:var(--text2);text-align:center;width:100%">No appointments scheduled</div>';
+}
+
+function renderDash(){
+  const today=new Date().toISOString().split('T')[0];
+  const rp=document.getElementById('dash-patients');
+  rp.innerHTML=patients.slice(-5).reverse().map(p=>`<tr><td><strong>${p.name}</strong></td><td>${p.age||'—'}</td><td>${p.visit||'—'}</td></tr>`).join('')||'<tr><td colspan="3" style="text-align:center;color:var(--text2);padding:16px">No patients</td></tr>';
+  const rm=document.getElementById('dash-meds');
+  const low=medicines.filter(m=>m.stock<=m.min);
+  rm.innerHTML=low.map(m=>`<tr><td><strong>${m.name}</strong></td><td>${m.stock}</td><td><span class="badge ${m.stock<=0?'badge-red':'badge-yellow'}">${m.stock<=0?'Out':'Low'}</span></td></tr>`).join('')||'<tr><td colspan="3" style="text-align:center;color:var(--green);padding:16px">✓ All medicines in stock</td></tr>';
+}
+
+function updateStats(){
+  const today=new Date().toISOString().split('T')[0];
+  document.getElementById('s-patients').textContent=patients.length;
+  document.getElementById('s-appts').textContent=appointments.filter(a=>a.date===today).length;
+  document.getElementById('s-meds').textContent=medicines.length;
+  const low=medicines.filter(m=>m.stock<=m.min).length;
+  document.getElementById('s-low').textContent=low;
+  document.getElementById('s-low-txt').textContent=low?low+' low stock':'All in stock';
+  document.getElementById('s-low-txt').className='stat-change '+(low?'down':'up');
+}
+
+// SAVE FUNCTIONS
+function saveMed(){
+  const name=document.getElementById('m-name').value.trim();
+  if(!name)return alert('Medicine name is required!');
+  medicines.push({id:Date.now(),name,cat:document.getElementById('m-cat').value,stock:+document.getElementById('m-stock').value||0,price:+document.getElementById('m-price').value||0,expiry:document.getElementById('m-expiry').value,min:+document.getElementById('m-min').value||10});
+  save();closeModal('med');renderAll();
+}
+
+function savePatient(){
+  const name=document.getElementById('p-name').value.trim();
+  if(!name)return alert('Patient name is required!');
+  patients.push({id:Date.now(),name,age:document.getElementById('p-age').value,phone:document.getElementById('p-phone').value,blood:document.getElementById('p-blood').value,gender:document.getElementById('p-gender').value,visit:document.getElementById('p-visit').value,diag:document.getElementById('p-diag').value});
+  save();closeModal('patient');renderAll();
+}
+
+function saveAppt(){
+  const name=document.getElementById('a-name').value.trim();
+  if(!name)return alert('Patient name is required!');
+  appointments.push({id:Date.now(),name,phone:document.getElementById('a-phone').value,date:document.getElementById('a-date').value,time:document.getElementById('a-time').value,type:document.getElementById('a-type').value,status:document.getElementById('a-status').value});
+  save();closeModal('appt');renderAll();
+}
+
+// DELETE
+function deleteMed(id){if(confirm('Delete this medicine?')){medicines=medicines.filter(m=>m.id!==id);save();renderAll();}}
+function deletePatient(id){if(confirm('Delete this patient?')){patients=patients.filter(p=>p.id!==id);save();renderAll();}}
+function deleteAppt(id){appointments=appointments.filter(a=>a.id!==id);save();renderAll();}
+
+// MODAL
+function openModal(t){document.getElementById('modal-'+t).classList.add('open')}
+function closeModal(t){document.getElementById('modal-'+t).classList.remove('open')}
+
+// SEARCH
+function globalSearch(q){
+  if(!q)return;
+  const lq=q.toLowerCase();
+  const found=patients.find(p=>p.name.toLowerCase().includes(lq));
+  if(found)showPage('patients');
+}
+
+// DATE
+document.getElementById('todayDate').textContent=new Date().toLocaleDateString('en-PK',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+
+// SET DEFAULT DATES
+document.getElementById('a-date').valueAsDate=new Date();
+document.getElementById('p-visit').valueAsDate=new Date();
+
+// INIT
+renderAll();
+</script>
+</body>
+</html>
